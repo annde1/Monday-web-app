@@ -71,15 +71,25 @@ class GameTimer extends Component {
     };
   }
 
+  reset = function () {
+    console.log("reset");
+    this.setState({
+      ...this.state,
+      seconds: this.props.seconds,
+    });
+  };
+
+  stop = function () {
+    console.log("stop");
+    clearInterval(this.state.interval);
+    this.reset();
+  };
+
   updateTime = function () {
     let remainingSeconds = this.state.seconds - 1;
     if (remainingSeconds === 0) {
       this.props.finished(this.state.interval);
-
-      this.setState({
-        ...this.state,
-        seconds: this.props.seconds,
-      });
+      this.reset();
       return;
     }
 
@@ -123,6 +133,7 @@ class GameScreen extends Component {
     const newQuestion = this.state.currentQuestion + 1;
     if (newQuestion === this.state.questions.length) {
       console.log("Game should finish");
+      this.refs.gameTimer.stop();
       this.props.finish();
       return;
     }
@@ -132,6 +143,7 @@ class GameScreen extends Component {
       currentQuestion: newQuestion,
     };
 
+    this.refs.gameTimer.reset();
     this.setState(newState);
   };
 
@@ -188,8 +200,9 @@ class GameScreen extends Component {
         <h1>Game screen</h1>
         <div>
           <div>
-            Time remainig:{" "}
+            Time remainig:
             <GameTimer
+              ref="gameTimer"
               seconds={this.state.duration}
               finished={() => {
                 this.incorrect();
