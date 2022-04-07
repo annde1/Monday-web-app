@@ -320,7 +320,7 @@ function FinishScreen(props) {
   let winnerImage = "https://cdn-icons-png.flaticon.com/512/3480/3480315.png";
   let winnerAlt = "happy face";
 
-  if (props.score == props.total) {
+  if (Number(props.score) === Number(props.total)) {
     heroSubtitle = "You got all right!";
     winnerImage =
       "https://cdn-icons.flaticon.com/png/512/2828/premium/2828315.png?token=exp=1649338759~hmac=716e547b8d24ff5e223944fdd32b7002";
@@ -334,22 +334,6 @@ function FinishScreen(props) {
     winnerImage = "https://cdn-icons-png.flaticon.com/512/3782/3782093.png";
     winnerAlt = "confused";
   }
-
-  let winner = (
-    <ImageComponent
-      url="https://cdn-icons-png.flaticon.com/512/3782/3782093.png"
-      alt="confused"
-    />
-  );
-  if (props.score == props.total) {
-    winner = (
-      <ImageComponent
-        url="https://cdn-icons.flaticon.com/png/512/2828/premium/2828315.png?token=exp=1649338759~hmac=716e547b8d24ff5e223944fdd32b7002"
-        alt="you won!"
-      />
-    );
-  }
-  console.log(winner);
 
   return (
     <div className="has-text-centered">
