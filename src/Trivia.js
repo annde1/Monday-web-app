@@ -30,29 +30,46 @@ class WelcomeScreen extends Component {
 
   render() {
     return (
-      <div>
-        <h1>Welcome screen</h1>
-        <label htmlFor="name">Player name: </label>
-        <input
-          id="name"
-          name="name"
-          defaultValue={this.state.name}
-          onChange={(evt) => this.handleName(evt.target.value)}
-        />
-        <label htmlFor="questions">How many questions: </label>
-        <input
-          id="questions"
-          name="questions"
-          defaultValue={this.state.questions}
-          onChange={(evt) => this.handleQuestions(evt.target.value)}
-        />
-        <input
-          type="submit"
-          value="Continue to game"
-          onClick={() => {
-            this.props.continue(this.state.name, this.state.questions);
-          }}
-        />
+      <div className="container box">
+        <h1 className="title">Welcome to Trivia!</h1>
+        <div className="field">
+          <label htmlFor="name" className="label">
+            Player name:{" "}
+          </label>
+          <div className="control">
+            <input
+              className="input"
+              id="name"
+              name="name"
+              defaultValue={this.state.name}
+              onChange={(evt) => this.handleName(evt.target.value)}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="questions" className="label">
+            How many questions:{" "}
+          </label>
+          <div className="control">
+            <input
+              className="input"
+              id="questions"
+              name="questions"
+              defaultValue={this.state.questions}
+              onChange={(evt) => this.handleQuestions(evt.target.value)}
+            />
+          </div>
+        </div>
+        <div className="field">
+          <input
+            className="button is-primary"
+            type="submit"
+            value="Continue to game"
+            onClick={() => {
+              this.props.continue(this.state.name, this.state.questions);
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -100,7 +117,17 @@ class GameTimer extends Component {
   };
 
   render() {
-    return <pre>{this.state.seconds}</pre>;
+    let timeRemaining = 1 - this.state.seconds / this.props.seconds;
+
+    return (
+      <progress
+        class="progress is-primary"
+        value={this.state.seconds}
+        max={this.props.seconds}
+      >
+        {this.state.seconds}
+      </progress>
+    );
   }
 }
 
@@ -169,6 +196,7 @@ class GameScreen extends Component {
     for (let i = 0; i < question.incorrect_answers.length; i++) {
       possilbeAnswers = possilbeAnswers.concat(
         <li
+          className="button"
           key={i + 1}
           onClick={() => {
             this.incorrect();
@@ -186,19 +214,19 @@ class GameScreen extends Component {
       insertCorrect,
       0,
       <li
+        className="button is-light"
         key={0}
         onClick={() => {
           this.correct();
         }}
       >
-        {question.correct_answer} *
+        {question.correct_answer}
       </li>
     );
 
     return (
-      <div>
-        <h1>Game screen</h1>
-        <div>
+      <div className="box">
+        <div className="container">
           <div>
             Time remainig:
             <GameTimer
@@ -210,9 +238,15 @@ class GameScreen extends Component {
             />
           </div>
           <div>
+            <h4 className="subtitle is-4">
+              {question.category}
+              <span className="tag">{question.difficulty}</span>
+            </h4>
+          </div>
+          <div>
             Question {this.state.currentQuestion + 1}: {question.question}
           </div>
-          <ul>{possilbeAnswers}</ul>
+          <ul className="buttons">{possilbeAnswers}</ul>
         </div>
       </div>
     );
@@ -220,9 +254,18 @@ class GameScreen extends Component {
 }
 
 function FinishScreen(props) {
+  let message = "Good Job!";
+  if (props.score / props.total <= 0.5) {
+    message = "Try again next time";
+  }
+
   return (
     <div>
       <h1>Finish screen</h1>
+      <div>
+        Score: {props.score} / {props.total}
+      </div>
+      <div>{message}</div>
       <div
         onClick={() => {
           props.anotherRound();
@@ -296,8 +339,9 @@ class TriviaGame extends Component {
       );
     } else if (gamePhase === "game") {
       screen = (
-        <div>
-          Welcome {this.state.playerName}, your score is {this.state.score}
+        <div className="cotainer">
+          <h1 className="title">Welcome {this.state.playerName}</h1>
+          <h2 className="title is-4">your score is {this.state.score}</h2>
           <GameScreen
             amountOfQuestions={this.state.amountOfQuestions}
             increaseScore={() => {
@@ -312,6 +356,8 @@ class TriviaGame extends Component {
     } else if (gamePhase === "finish") {
       screen = (
         <FinishScreen
+          score={this.state.score}
+          total={this.state.amountOfQuestions}
           anotherRound={() => {
             this.advanceGameScreen("welcome");
           }}
@@ -319,17 +365,15 @@ class TriviaGame extends Component {
       );
     }
 
-    return <div>{screen}</div>;
+    return <div className="container">{screen}</div>;
   }
 }
 
 class App extends Component {
   render() {
     return (
-      <div className="Trivia">
-        <header className="Trivia-header">
-          <TriviaGame name="Kitzy the Cat" amountOfQuestions="5" />
-        </header>
+      <div className="Trivia container">
+        <TriviaGame name="Kitzy the Cat" amountOfQuestions="5" />
       </div>
     );
   }
