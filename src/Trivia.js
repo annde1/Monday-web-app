@@ -1,5 +1,16 @@
 import React, { Component } from "react";
+import { bounce } from "react-animations";
+import Radium, { StyleRoot } from "radium";
+
 import "./Trivia.css";
+
+const styles = {
+  bounce: {
+    animation: "x 1s",
+    animationIterationCount: "infinite",
+    animationName: Radium.keyframes(bounce, "bounce"),
+  },
+};
 
 function ImageComponent(props) {
   return (
@@ -252,9 +263,8 @@ class GameScreen extends Component {
           onClick={() => {
             this.incorrect();
           }}
-        >
-          <React.Fragment>{question.incorrect_answers[i]}</React.Fragment>
-        </li>
+          dangerouslySetInnerHTML={{ __html: question.incorrect_answers[i] }}
+        ></li>
       );
     }
 
@@ -277,6 +287,7 @@ class GameScreen extends Component {
         onClick={() => {
           this.correct();
         }}
+        ref="correctAnswer"
       >
         {question.correct_answer}
       </li>
@@ -351,7 +362,11 @@ function FinishScreen(props) {
           </section>
 
           <div>
-            <ImageComponent url={winnerImage} alt={winnerAlt} />
+            <StyleRoot>
+              <div className="test" style={styles.bounce}>
+                <ImageComponent url={winnerImage} alt={winnerAlt} />
+              </div>
+            </StyleRoot>
           </div>
           <div
             className="button is-primary"
