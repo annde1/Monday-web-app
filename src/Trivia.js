@@ -1,12 +1,23 @@
 import React, { Component } from "react";
 import "./Trivia.css";
 
+function ImageComponent(props) {
+  return (
+    <div>
+      <figure className="is-128x128 mt-4 mb-4">
+        <img src={props.url} alt={props.alt} width={"300"} height={"300"} />
+      </figure>
+    </div>
+  );
+}
+
 class WelcomeScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
       name: props.name,
       questions: props.questions,
+      cheatmode: props.cheatmode,
     };
   }
 
@@ -28,10 +39,27 @@ class WelcomeScreen extends Component {
     this.setState(newState);
   };
 
+  handleCheatmode = function (cheatmode) {
+    let newState = {
+      ...this.state,
+      cheatmode: cheatmode,
+    };
+
+    this.setState(newState);
+  };
+
   render() {
     return (
       <div className="container box">
         <h1 className="title">Welcome to Trivia!</h1>
+        <div>
+          <p>
+            Hello, please enter below your name and numbers of question you want
+            play. This game is played in a series of questions. Only one answer
+            is true. Note, that your time for each question is limited. At the
+            end of each turn you will be presented your score. Enjoy the game!{" "}
+          </p>
+        </div>
         <div className="field">
           <label htmlFor="name" className="label">
             Player name:{" "}
@@ -48,7 +76,7 @@ class WelcomeScreen extends Component {
         </div>
         <div className="field">
           <label htmlFor="questions" className="label">
-            How many questions:{" "}
+            How many questions:
           </label>
           <div className="control">
             <input
@@ -60,13 +88,34 @@ class WelcomeScreen extends Component {
             />
           </div>
         </div>
+
+        <div className="field">
+          <div className="control">
+            <label htmlFor="cheatmode" className="checkbox">
+              <input
+                type="checkbox"
+                className="checkbox mr-2"
+                id="cheatmode"
+                name="cheatmode"
+                defaultValue={this.state.cheatmode}
+                checked={this.state.cheatmode}
+                onChange={(evt) => this.handleCheatmode(evt.target.checked)}
+              />
+              Cheat mode
+            </label>
+          </div>
+        </div>
         <div className="field">
           <input
             className="button is-primary"
             type="submit"
             value="Continue to game"
             onClick={() => {
-              this.props.continue(this.state.name, this.state.questions);
+              this.props.continue(
+                this.state.name,
+                this.state.questions,
+                this.state.cheatmode
+              );
             }}
           />
         </div>
@@ -89,7 +138,6 @@ class GameTimer extends Component {
   }
 
   reset = function () {
-    console.log("reset");
     this.setState({
       ...this.state,
       seconds: this.props.seconds,
@@ -97,7 +145,6 @@ class GameTimer extends Component {
   };
 
   stop = function () {
-    console.log("stop");
     clearInterval(this.state.interval);
     this.reset();
   };
@@ -117,11 +164,9 @@ class GameTimer extends Component {
   };
 
   render() {
-    let timeRemaining = 1 - this.state.seconds / this.props.seconds;
-
     return (
       <progress
-        class="progress is-primary"
+        className="progress is-primary"
         value={this.state.seconds}
         max={this.props.seconds}
       >
@@ -187,7 +232,13 @@ class GameScreen extends Component {
 
   render() {
     if (this.state.questions.length === 0) {
-      return <div>Waiting to load questions...</div>;
+      return (
+        <div className="box">
+          <progress className="progress is-large is-info" max="100">
+            60%
+          </progress>
+        </div>
+      );
     }
 
     const question = this.state.questions[this.state.currentQuestion];
@@ -202,7 +253,7 @@ class GameScreen extends Component {
             this.incorrect();
           }}
         >
-          {question.incorrect_answers[i]}
+          <React.Fragment>{question.incorrect_answers[i]}</React.Fragment>
         </li>
       );
     }
@@ -210,11 +261,18 @@ class GameScreen extends Component {
     const insertCorrect = Math.floor(
       Math.random() * question.incorrect_answers.length
     );
+
+    let cheatmode = "";
+    if (this.props.cheatmode) {
+      console.log("Cheat mode active");
+      cheatmode = " is-light";
+    }
+
     possilbeAnswers.splice(
       insertCorrect,
       0,
       <li
-        className="button is-light"
+        className={"button" + cheatmode}
         key={0}
         onClick={() => {
           this.correct();
@@ -237,16 +295,17 @@ class GameScreen extends Component {
               }}
             />
           </div>
-          <div>
-            <h4 className="subtitle is-4">
-              {question.category}
-              <span className="tag">{question.difficulty}</span>
-            </h4>
+          <div className="mb-5 mt-5 has-text-centered">
+            <p className="heading">{question.category}</p>
+            <p className="title is-4">
+              Question {this.state.currentQuestion + 1}:
+              <span dangerouslySetInnerHTML={{ __html: question.question }} />
+            </p>
           </div>
-          <div>
-            Question {this.state.currentQuestion + 1}: {question.question}
+
+          <div className="is-flex is-justify-content-center	">
+            <ul className="buttons has-text-centered">{possilbeAnswers}</ul>
           </div>
-          <ul className="buttons">{possilbeAnswers}</ul>
         </div>
       </div>
     );
@@ -254,24 +313,72 @@ class GameScreen extends Component {
 }
 
 function FinishScreen(props) {
-  let message = "Good Job!";
-  if (props.score / props.total <= 0.5) {
-    message = "Try again next time";
+  let heroClass = "is-primary";
+  let heroTitle = "Good Job!";
+  let heroSubtitle = "Trivia night!";
+
+  let winnerImage = "https://cdn-icons-png.flaticon.com/512/3480/3480315.png";
+  let winnerAlt = "happy face";
+
+  if (props.score == props.total) {
+    heroSubtitle = "You got all right!";
+    winnerImage =
+      "https://cdn-icons.flaticon.com/png/512/2828/premium/2828315.png?token=exp=1649338759~hmac=716e547b8d24ff5e223944fdd32b7002";
+    winnerAlt = "you won!";
   }
 
+  if (props.score / props.total <= 0.5) {
+    heroClass = "is-warning";
+    heroTitle = "Try again next time";
+    heroSubtitle = "Practice makes you better";
+    winnerImage = "https://cdn-icons-png.flaticon.com/512/3782/3782093.png";
+    winnerAlt = "confused";
+  }
+
+  let winner = (
+    <ImageComponent
+      url="https://cdn-icons-png.flaticon.com/512/3782/3782093.png"
+      alt="confused"
+    />
+  );
+  if (props.score == props.total) {
+    winner = (
+      <ImageComponent
+        url="https://cdn-icons.flaticon.com/png/512/2828/premium/2828315.png?token=exp=1649338759~hmac=716e547b8d24ff5e223944fdd32b7002"
+        alt="you won!"
+      />
+    );
+  }
+  console.log(winner);
+
   return (
-    <div>
-      <h1>Finish screen</h1>
-      <div>
-        Score: {props.score} / {props.total}
-      </div>
-      <div>{message}</div>
-      <div
-        onClick={() => {
-          props.anotherRound();
-        }}
-      >
-        Click me for another round
+    <div className="has-text-centered">
+      <h1 className="title">Game Over</h1>
+
+      <div className="box">
+        <div className="title is-4">
+          Score: {props.score} / {props.total}
+        </div>
+        <div className="has-text-centered">
+          <section class={"hero " + heroClass}>
+            <div class="hero-body">
+              <p class="title">{heroTitle}</p>
+              <p class="subtitle">{heroSubtitle}</p>
+            </div>
+          </section>
+
+          <div>
+            <ImageComponent url={winnerImage} alt={winnerAlt} />
+          </div>
+          <div
+            className="button is-primary"
+            onClick={() => {
+              props.anotherRound();
+            }}
+          >
+            Click me for another round
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -287,37 +394,36 @@ class TriviaGame extends Component {
     };
   }
 
-  startGame = function (newName, newAmountOfQuestions) {
+  startGame = function (newName, newAmountOfQuestions, cheatmode) {
     let newState = {
       ...this.state,
+      cheatmode: cheatmode,
       score: 0,
       start: 0,
       gamePhase: "game",
       playerName: newName,
       amountOfQuestions: newAmountOfQuestions,
     };
-
     this.setState(newState);
   };
 
   increaseScore = function () {
-    console.log("We should increase the score");
     let newState = {
       ...this.state,
       score: this.state.score + 1,
     };
+    // console.log(newState);
     this.setState(newState);
+    // console.log(this.state);
   };
 
   advanceGameScreen = function (nextScreen) {
-    let newState = {
-      ...this.state,
-      gamePhase: nextScreen,
-    };
-
-    console.log(this.state);
-    console.log(newState);
-    this.setState(newState);
+    this.setState((state, props) => {
+      return {
+        ...state,
+        gamePhase: nextScreen,
+      };
+    });
   };
 
   gotoFinishScreen = function () {
@@ -332,16 +438,22 @@ class TriviaGame extends Component {
         <WelcomeScreen
           name={this.state.playerName}
           questions={this.state.amountOfQuestions}
-          continue={(newName, newQuestions) => {
-            this.startGame(newName, newQuestions);
+          continue={(newName, newQuestions, cheatmode) => {
+            console.log(cheatmode);
+            this.startGame(newName, newQuestions, cheatmode);
           }}
+          cheatmode={this.state.cheatmode}
         />
       );
     } else if (gamePhase === "game") {
       screen = (
         <div className="cotainer">
-          <h1 className="title">Welcome {this.state.playerName}</h1>
-          <h2 className="title is-4">your score is {this.state.score}</h2>
+          <section className="hero is-primary is-small">
+            <div className="hero-body">
+              <p className="title">Welcome {this.state.playerName}</p>
+              <p className="subtitle">your score is {this.state.score}</p>
+            </div>
+          </section>
           <GameScreen
             amountOfQuestions={this.state.amountOfQuestions}
             increaseScore={() => {
@@ -350,6 +462,7 @@ class TriviaGame extends Component {
             finish={() => {
               this.gotoFinishScreen();
             }}
+            cheatmode={this.state.cheatmode}
           />
         </div>
       );
