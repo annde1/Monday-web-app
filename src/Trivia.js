@@ -322,8 +322,7 @@ function FinishScreen(props) {
 
   if (Number(props.score) === Number(props.total)) {
     heroSubtitle = "You got all right!";
-    winnerImage =
-      "https://cdn-icons.flaticon.com/png/512/2828/premium/2828315.png";
+    winnerImage = "https://cdn-icons-png.flaticon.com/512/3322/3322105.png";
     winnerAlt = "you won!";
   }
 
