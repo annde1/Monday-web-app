@@ -73,7 +73,7 @@ class WelcomeScreen extends Component {
         </div>
         <div className="field">
           <label htmlFor="name" className="label">
-            Player name:{" "}
+            Player name:
           </label>
           <div className="control">
             <input
@@ -108,7 +108,6 @@ class WelcomeScreen extends Component {
                 className="checkbox mr-2"
                 id="cheatmode"
                 name="cheatmode"
-                defaultValue={this.state.cheatmode}
                 checked={this.state.cheatmode}
                 onChange={(evt) => this.handleCheatmode(evt.target.checked)}
               />
@@ -344,6 +343,16 @@ function FinishScreen(props) {
     winnerImage = "https://cdn-icons-png.flaticon.com/512/3782/3782093.png";
     winnerAlt = "confused";
   }
+  console.log(props.leadersBoard);
+  let leadersBoardElements = [];
+  for (let player in props.leadersBoard) {
+    leadersBoardElements = leadersBoardElements.concat(
+      <tr key={player}>
+        <td>{player}</td>
+        <td>{props.leadersBoard[player]}</td>
+      </tr>
+    );
+  }
 
   return (
     <div className="has-text-centered">
@@ -354,10 +363,10 @@ function FinishScreen(props) {
           Score: {props.score} / {props.total}
         </div>
         <div className="has-text-centered">
-          <section class={"hero " + heroClass}>
-            <div class="hero-body">
-              <p class="title">{heroTitle}</p>
-              <p class="subtitle">{heroSubtitle}</p>
+          <section className={"hero " + heroClass}>
+            <div className="hero-body">
+              <p className="title">{heroTitle}</p>
+              <p className="subtitle">{heroSubtitle}</p>
             </div>
           </section>
 
@@ -376,6 +385,18 @@ function FinishScreen(props) {
           >
             Click me for another round
           </div>
+          <div className="has-text-centered mt-6 is-justify-content-center">
+            <h1 className="title">Leaders Board</h1>
+            <table className="table is-fullwidth">
+              <thead>
+                <tr>
+                  <td>Player Name</td>
+                  <td>Score</td>
+                </tr>
+              </thead>
+              <tbody>{leadersBoardElements}</tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -389,6 +410,8 @@ class TriviaGame extends Component {
       gamePhase: "welcome",
       playerName: props.name,
       amountOfQuestions: props.amountOfQuestions,
+      cheatmode: false,
+      leadersBoard: {},
     };
   }
 
@@ -397,7 +420,6 @@ class TriviaGame extends Component {
       ...this.state,
       cheatmode: cheatmode,
       score: 0,
-      start: 0,
       gamePhase: "game",
       playerName: newName,
       amountOfQuestions: newAmountOfQuestions,
@@ -408,8 +430,17 @@ class TriviaGame extends Component {
   increaseScore = function () {
     let newState = {
       ...this.state,
-      score: this.state.score + 1,
     };
+
+    newState.score = newState.score + 1;
+
+    let newLeadersboard = {
+      ...this.state.leadersBoard,
+    };
+
+    newLeadersboard[newState.playerName] = newState.score;
+
+    newState.leadersBoard = newLeadersboard;
     // console.log(newState);
     this.setState(newState);
     // console.log(this.state);
@@ -472,6 +503,7 @@ class TriviaGame extends Component {
           anotherRound={() => {
             this.advanceGameScreen("welcome");
           }}
+          leadersBoard={this.state.leadersBoard}
         />
       );
     }
